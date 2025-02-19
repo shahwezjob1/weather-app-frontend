@@ -3,6 +3,8 @@ import './App.css';
 import SearchBar from './components/SearchBar';
 import WeatherForecast from './components/WeatherForecast';
 import ToggleSwitch from './components/ToggleSwitch';
+import { fetchWeatherDataApi } from './utils/api';
+import { fetchWeatherDataCache } from './utils/cache';
 
 const App = () => {
   const [city, setCity] = useState('');
@@ -12,39 +14,6 @@ const App = () => {
   const [offlineMode, setOfflineMode] = useState(false);
 
   const validateCityName = (name) => /^[a-zA-Z ]+$/.test(name);
-
-  const fetchWeatherDataApi = async (city) => {
-    try {
-      city = city.toLowerCase();
-      console.log("city = " + city);
-      const response = await fetch(`http://localhost:8080/weather?city=${city}`);
-      const data = await response.json();
-      if (response.ok) {
-        console.log("fetched data for city = " + city);
-        setWeatherData(data);
-        localStorage.setItem(city, JSON.stringify(data));
-      } else {
-        fetchWeatherDataCache(city);
-      }
-    } catch (err) {
-      fetchWeatherDataCache(city);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const fetchWeatherDataCache = (city) => {
-    console.error("failed to fetch data for city = " + city);
-    const cachedData = localStorage.getItem(city);
-    if (cachedData) {
-      console.log("found data in browser cache for city = " + city);
-      setWeatherData(JSON.parse(cachedData));
-      setError('Server not reachable, showing data from browser cache.');
-    } else {
-      console.error("not found data in browser cache for city = " + city);
-      setError('Server not reachable and data not found in browser cache.');
-    }
-  };
 
   const handleSearch = async () => {
     if (city === "") {
@@ -61,12 +30,31 @@ const App = () => {
     setError(null);
     setWeatherData(null);
     if (offlineMode) {
-      fetchWeatherDataCache(city);
-      setLoading(false);
+      try {
+        const result = fetchWeatherDataCache(city);
+        setWeatherData(result);
+      } catch {
+        setError('Data not found in browser cache')
+      }
     } else {
-      fetchWeatherDataApi(city);
+      try {
+        const result = await fetchWeatherDataApi(city);
+        setWeatherData(result);
+      } catch {
+        handleApiError(city);
+      }
     }
+    setLoading(false);
   };
+
+  const handleApiError = (city) => {
+    try {
+      const cachedResult = fetchWeatherDataCache(city);
+      setWeatherData(cachedResult);
+    } catch {
+      setError('Unable to reach the server and data not found in browser cache')
+    }
+  }
 
   return (
     <div className="app">

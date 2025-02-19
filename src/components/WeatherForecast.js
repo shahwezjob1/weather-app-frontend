@@ -1,10 +1,25 @@
 import React from 'react';
 import CityDetails from './CityDetails';
 import ForecastRow from './ForecastRow';
+import ForecastTimeRow from './ForecastTimeRow';
 
 const groupForecastsByDate = (forecasts) => {
   const hours = ['00:00', '03:00', '06:00', '09:00', '12:00', '15:00', '18:00', '21:00'];
   const groupedData = {};
+  const currentTimestamp = new Date().toISOString();
+  const currentTime = currentTimestamp.slice(11, 16);
+  const currentDate = currentTimestamp.slice(0, 10);
+
+  var itr = 0;
+  forecasts = forecasts.filter((forecast) => {
+    const [date, time] = forecast.dtTxt.split(' ');
+    const hour = time.slice(0, 5);
+    const valid = !(currentDate > date || (currentDate === date && currentTime > hour));
+    if (valid) {
+      itr = itr + 1;
+    }
+    return valid && itr <= 24;
+  });
 
   const [firstDate, firstTime] = forecasts[0].dtTxt.split(' ');
   groupedData[firstDate] = {};
@@ -41,6 +56,9 @@ const WeatherForecast = ({ weatherData }) => {
     <div className="forecast-info">
       <h2>5-Day Weather Forecast for {weatherData.data.city}</h2>
       <CityDetails cityData={weatherData.data} />
+      <div className="forecast-container">
+        <ForecastTimeRow/>
+      </div>
       <div className="forecast-container">
         {Object.entries(groupForecastsByDate(weatherData.data.list)).map(([date, forecasts]) => (
           <ForecastRow key={date} date={date} forecasts={forecasts} />
