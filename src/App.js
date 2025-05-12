@@ -5,6 +5,7 @@ import WeatherForecast from './components/WeatherForecast';
 import ToggleSwitch from './components/ToggleSwitch';
 import { fetchWeatherDataApi } from './utils/api';
 import { fetchWeatherDataCache } from './utils/cache';
+import Loader from './components/Loader';
 
 const App = () => {
   const [city, setCity] = useState('');
@@ -62,7 +63,7 @@ const App = () => {
 
       <SearchBar city={city} setCity={setCity} handleSearch={handleSearch} />
 
-      {loading && <p className="loading">Loading...</p>}
+      {loading && <Loader/>}
 
       {error && <p className="error">{error}</p>}
 

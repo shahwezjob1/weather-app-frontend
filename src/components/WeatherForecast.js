@@ -54,12 +54,10 @@ const WeatherForecast = ({ weatherData }) => {
 
   return (
     <div className="forecast-info">
-      <h2>5-Day Weather Forecast for {weatherData.data.city}</h2>
+      <h2>72 Hour Weather Forecast</h2>
       <CityDetails cityData={weatherData.data} />
       <div className="forecast-container">
         <ForecastTimeRow/>
-      </div>
-      <div className="forecast-container">
         {Object.entries(groupForecastsByDate(weatherData.data.list)).map(([date, forecasts]) => (
           <ForecastRow key={date} date={date} forecasts={forecasts} />
         ))}
